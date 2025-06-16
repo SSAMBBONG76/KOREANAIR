@@ -1,0 +1,126 @@
+const express = require('express');
+const multer = require('multer');
+const cors = require('cors');
+const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+const PORT = 3000;
+
+app.use(cors());
+app.use(express.json());
+app.use('/uploads', express.static('uploads'));
+
+// In-memory storage
+let photos = []; // [{ id, filename, originalname, likes }]
+
+// Multer setup
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = 'uploads';
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${uuidv4()}-${file.originalname}`;
+    cb(null, uniqueName);
+  }
+});
+const upload = multer({ storage });
+
+// ✅ 사진 업로드
+app.post('/upload', upload.array('photos', 10), (req, res) => {
+  const uploaded = req.files.map(file => {
+    const photo = {
+      id: uuidv4(),
+      filename: file.filename,
+      originalname: file.originalname,
+      likes: 0
+    };
+    photos.push(photo);
+    return photo;
+  });
+  res.status(201).json(uploaded);
+});
+
+// 📥 사진 목록
+app.get('/photos', (req, res) => {
+  res.json(photos);
+});
+
+// ❤️ 좋아요 증가
+app.post('/photos/:id/like', (req, res) => {
+  const photo = photos.find(p => p.id === req.params.id);
+  if (!photo) return res.status(404).json({ error: 'Photo not found' });
+  photo.likes += 1;
+  res.json(photo);
+});
+
+// 💔 좋아요 감소
+app.post('/photos/:id/unlike', (req, res) => {
+  const photo = photos.find(p => p.id === req.params.id);
+  if (!photo) return res.status(404).json({ error: 'Photo not found' });
+  if (photo.likes > 0) photo.likes -= 1;
+  res.json(photo);
+});
+
+// 🗑️ 사진 삭제
+app.delete('/photos/:id', (req, res) => {
+  const index = photos.findIndex(p => p.id === req.params.id);
+  if (index === -1) return res.status(404).json({ error: 'Photo not found' });
+
+  const [deleted] = photos.splice(index, 1);
+  const filePath = path.join(__dirname, 'uploads', deleted.filename);
+  fs.unlink(filePath, err => {
+    if (err) console.error(err);
+  });
+
+  res.json({ success: true, deleted });
+});
+app.use(express.static('public'));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});
+
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const app = express();
+const PORT = 3000;
+
+// 정적 폴더 설정
+app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
+
+// 업로드 저장 설정
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads'),
+  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+});
+const upload = multer({ storage });
+
+// 이미지 업로드 API
+app.post('/upload', upload.single('image'), (req, res) => {
+  res.json({ path: `/uploads/${req.file.filename}` });
+});
+
+// 초기 이미지 + 업로드 이미지 목록 반환
+app.get('/images', (req, res) => {
+  const sampleDir = path.join(__dirname, 'public/images');
+  const uploadsDir = path.join(__dirname, 'uploads');
+
+  const sampleImages = fs.readdirSync(sampleDir).map(file => `/images/${file}`);
+  const uploadedImages = fs.existsSync(uploadsDir)
+    ? fs.readdirSync(uploadsDir).map(file => `/uploads/${file}`)
+    : [];
+
+  res.json([...sampleImages, ...uploadedImages]);
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+
