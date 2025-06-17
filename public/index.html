@@ -6,10 +6,15 @@
   <title>Korean Air Gallery</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
       font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      background: #000;
     }
 
     header {
@@ -22,6 +27,7 @@
 
     header img {
       height: 40px;
+      max-width: none;
     }
 
     .upload-btn {
@@ -36,7 +42,7 @@
 
     .hero {
       position: relative;
-      height: 70vh;
+      height: 100vh;
       overflow: hidden;
     }
 
@@ -53,8 +59,11 @@
       position: relative;
       z-index: 2;
       color: white;
-      padding-left: 2rem;
-      padding-top: 3rem;
+      padding: 3rem 1rem 0 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .hero-text h1 {
@@ -125,12 +134,35 @@
     }
 
     @media (max-width: 600px) {
+      .upload-btn {
+        padding: 0.4rem 1rem;
+        margin-top: 1rem;
+      }
+
+      header .upload-btn {
+        display: none;
+      }
+
+      .hero-text .upload-btn {
+        display: inline-block;
+      }
+
+      .gallery {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .hero-text {
+        padding-top: 2rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
       .hero-text h1 {
         font-size: 2rem;
       }
 
-      .upload-btn {
-        padding: 0.4rem 1rem;
+      header img {
+        height: 30px;
       }
     }
   </style>
@@ -149,6 +181,7 @@
     </video>
     <div class="hero-text">
       <h1>SHARE<br/>EPIC MOMENT<br/>WITH KOREAN AIR</h1>
+      <button class="upload-btn" onclick="triggerUpload()">UPLOAD</button>
     </div>
   </section>
 

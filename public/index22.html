@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Korean Air Gallery</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: #fff;
+    }
+
+    header img {
+      height: 40px;
+    }
+
+    .upload-btn {
+      background: black;
+      color: white;
+      padding: 0.6rem 1.5rem;
+      border: none;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .hero {
+      position: relative;
+      height: 70vh;
+      overflow: hidden;
+    }
+
+    .hero video {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+    }
+
+    .hero-text {
+      position: relative;
+      z-index: 2;
+      color: white;
+      padding-left: 2rem;
+      padding-top: 3rem;
+    }
+
+    .hero-text h1 {
+      font-size: 3rem;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      padding: 2rem;
+    }
+
+    .photo-card {
+      position: relative;
+      aspect-ratio: 1/1;
+      background: #ccc;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .photo-card .delete {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      padding: 0.3rem 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .photo-card:hover .delete {
+        opacity: 1;
+      }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .photo-card .delete {
+        opacity: 1;
+      }
+    }
+
+    .photo-card .like {
+      position: absolute;
+      bottom: 0.5rem;
+      left: 0.5rem;
+      background: rgba(255,255,255,0.9);
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .photo-card .like.liked i {
+      color: red;
+    }
+
+    @media (max-width: 600px) {
+  .upload-btn {
+    padding: 0.4rem 1rem;
+    margin-top: 1rem;
+  }
+
+  header .upload-btn {
+    display: none; /* 모바일에서는 헤더 안 업로드 버튼 숨김 */
+  }
+
+  .hero-text .upload-btn {
+    display: inline-block; /* 모바일에서는 hero 안에 업로드 버튼 보임 */
+  }
+
+  .gallery {
+    grid-template-columns: repeat(2, 1fr); /* 모바일에서 2열로 고정 */
+  }
+
+      .hero-text h1 {
+        font-size: 2rem;
+      }
+
+      .upload-btn {
+        padding: 0.4rem 1rem;
+      }
+    }
+  
+  .hero {
+    height: 100vh;
+  }
+
+  .hero video {
+    object-fit: cover;
+  }
+
+  header img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 600px) {
+    header img {
+      height: 30px;
+    }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Korean Air Logo">
+    <button class="upload-btn" onclick="triggerUpload()">UPLOAD</button>
+    <input type="file" id="uploadInput" accept="image/*" hidden onchange="handleImageUpload(event)" />
+  </header>
+
+  <section class="hero">
+    <video autoplay muted loop playsinline>
+      <source src="video.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    <div class="hero-text">
+      <h1>SHARE<br/>EPIC MOMENT<br/>WITH KOREAN AIR</h1>
+  <button class="upload-btn" onclick="triggerUpload()">UPLOAD</button>
+    </div>
+  </section>
+
+  <section class="gallery" id="gallery"></section>
+
+  <script>
+    function triggerUpload() {
+      document.getElementById('uploadInput').click();
+    }
+
+    async function loadImages() {
+      const res = await fetch('/images');
+      const images = await res.json();
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+
+      images.forEach(({ url, likes }) => {
+        const card = document.createElement('div');
+        card.className = 'photo-card';
+        card.innerHTML = `
+          <img src="${url}" />
+          <button class="delete" onclick="this.parentElement.remove()">×</button>
+          <div class="like" onclick="toggleLike(this)">
+            <i class="fa-regular fa-heart"></i> <span>${likes}</span>
+          </div>`;
+        gallery.appendChild(card);
+      });
+    }
+
+    async function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+
+      const gallery = document.getElementById('gallery');
+      const card = document.createElement('div');
+      card.className = 'photo-card';
+      card.innerHTML = `
+        <img src="${data.path}" />
+        <button class="delete" onclick="this.parentElement.remove()">×</button>
+        <div class="like" onclick="toggleLike(this)">
+          <i class="fa-regular fa-heart"></i> <span>0</span>
+        </div>`;
+      gallery.prepend(card);
+    }
+
+    function toggleLike(el) {
+      const icon = el.querySelector('i');
+      const count = el.querySelector('span');
+      let num = parseInt(count.textContent);
+      if (el.classList.contains('liked')) {
+        el.classList.remove('liked');
+        icon.classList.replace('fa-solid', 'fa-regular');
+        count.textContent = num - 1;
+      } else {
+        el.classList.add('liked');
+        icon.classList.replace('fa-regular', 'fa-solid');
+        count.textContent = num + 1;
+      }
+    }
+
+    window.onload = loadImages;
+  </script>
+</body>
+</html>
