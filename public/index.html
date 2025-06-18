@@ -96,23 +96,17 @@
     }
 
     .photo-card .delete {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      width: 2rem;
-      height: 2rem;
-      background: white;
-      color: black;
-      border: none;
-      border-radius: 50%;
-      font-size: 1.2rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      opacity: 0;
-      transition: opacity 0.2s ease-in-out;
+  position: absolute;
+  top: 0.3rem;
+  right: 0.75rem;
+  background: none;        /* 배경 제거 */
+  color: white;            /* 텍스트 색상 (필요에 따라 조정) */
+  border: none;            /* 테두리 제거 */
+  font-size: 1.5rem;       /* X 아이콘 크기 (원하는 크기로 조정) */
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
     }
 
     @media (hover: hover) and (pointer: fine) {
