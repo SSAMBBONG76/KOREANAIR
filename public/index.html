@@ -243,20 +243,40 @@
       gallery.prepend(card);
     }
 
-    function toggleLike(el) {
-      const icon = el.querySelector('i');
-      const count = el.querySelector('span');
-      let num = parseInt(count.textContent);
-      if (el.classList.contains('liked')) {
-        el.classList.remove('liked');
-        icon.classList.replace('fa-solid', 'fa-regular');
-        count.textContent = num - 1;
-      } else {
-        el.classList.add('liked');
-        icon.classList.replace('fa-regular', 'fa-solid');
-        count.textContent = num + 1;
-      }
+   async function toggleLike(el) {
+  const card = el.closest('.photo-card');
+  const img = card.querySelector('img');
+  const imgUrl = img.getAttribute('src');
+  const imageId = imgUrl.split('/').pop();
+
+  const liked = localStorage.getItem('liked_' + imageId);
+
+  const res = await fetch('/like', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      image: imageId,
+      action: liked ? 'unlike' : 'like'
+    })
+  });
+
+  const data = await res.json();
+  if (data.success) {
+    const count = el.querySelector('span');
+    count.textContent = data.likes;
+
+    const icon = el.querySelector('i');
+    if (liked) {
+      el.classList.remove('liked');
+      icon.classList.replace('fa-solid', 'fa-regular');
+      localStorage.removeItem('liked_' + imageId);
+    } else {
+      el.classList.add('liked');
+      icon.classList.replace('fa-regular', 'fa-solid');
+      localStorage.setItem('liked_' + imageId, 'true');
     }
+  }
+}
 
     window.onload = loadImages;
   </script>
